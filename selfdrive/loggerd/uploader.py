@@ -12,13 +12,13 @@ from pathlib import Path
 
 from cereal import log
 import cereal.messaging as messaging
-from common.api import Api
+#from common.api import Api
 from common.params import Params
 from common.realtime import set_core_affinity
 from system.hardware import TICI
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
-from system.swaglog import cloudlog
+from selfdrive.swaglog import cloudlog
 
 NetworkType = log.DeviceState.NetworkType
 UPLOAD_ATTR_NAME = 'user.upload'
@@ -57,7 +57,7 @@ def clear_locks(root):
 class Uploader():
   def __init__(self, dongle_id, root):
     self.dongle_id = dongle_id
-    self.api = Api(dongle_id)
+    #self.api = Api(dongle_id)
     self.root = root
 
     self.upload_thread = None
@@ -116,7 +116,7 @@ class Uploader():
             self.immediate_size += os.path.getsize(fn)
         except OSError:
           pass
-
+        
         yield (name, key, fn)
 
   def next_file_to_upload(self):
