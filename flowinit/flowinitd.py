@@ -22,6 +22,7 @@ from flowinit.services import Service, killswitch
 from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                               terms_version, training_version
 from selfdrive.swaglog import cloudlog
+from flowinit.process_config import managed_processes
 
 logger = logging.getLogger(__name__)
 os.chdir(BASEDIR)
@@ -141,42 +142,22 @@ def append_extras(command: str):
 
 def main():
     params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
-    with FileLock("flowinit"):
-        # Argument Parsing
-        args = parse_args(sys.argv[1:])
+    with FileLock("flowinit"):     
+        cloudlog.info(f"Got services: \n {managed_processes.keys()}")
 
-        # Make the logpath if not already done
-        Path(args.logpath).mkdir(parents=True, exist_ok=True)
-        Config.LOGPATH = "" if not args.logfile else args.logpath
-
-        # Set up logging
-        log_levels: list = [logging.INFO, logging.DEBUG]
-        verbosity: int = min(args.verbose, len(log_levels) - 1)
-        log_level = log_levels[verbosity]
-        logging.basicConfig(
-            level=log_level,
-            format="%(asctime)s %(filename)s [%(levelname)s] %(message)s",
-        )
-
-        # Parse the services yaml file
-        services, nomonitor_services = parse_services(args.config)
-
-        services_names = [service.name for service in services+nomonitor_services] 
         for proc in psutil.process_iter():
-            if proc.name() in services_names:
-                logger.warning(f"{proc.name()} already alive, restarting..")
+            if proc.name() in managed_processes.keys():
+                cloudlog.info(f"{proc.name()} already alive, restarting..")
                 proc.kill()
             
-        for service in services+nomonitor_services: 
+        for p in managed_processes.values(): 
 
             # explicitly need to pass env variables to android app through extras.
-            if service.name == ANDROID_APP:
-                service.command = append_extras(service.command)
+            if p.name == ANDROID_APP:
+                managed_processes[service].cmdline = append_extras(managed_processes[service].cmdline)
 
-            if service.nowait:
-                service.start()
-
-        logger.debug(f"Got services: \n {services}")
+            if p.nowait:
+                p.start()
 
         default_params = [
                         ("CompletedTrainingVersion", "0"),
@@ -223,50 +204,39 @@ def main():
         wait_for_start_signal(daemon)
 
         # on android without root, we cannot monitor external processes
-        flowpilot_pid = int.from_bytes(params.get("FlowpilotPID"), "little")
-        if psutil.pid_exists(flowpilot_pid):
-            flowpilot_process = Service("modeld camerad ui sensord", pid=flowpilot_pid,
-                                        monitor_only=True)
-            services.append(flowpilot_process)
-        else:
-            cloudlog.warning("Unable to monitor flowpilot app (modeld camerad ui sensord)")
+        # flowpilot_pid = int.from_bytes(params.get("FlowpilotPID"), "little")
+        # if psutil.pid_exists(flowpilot_pid):
+        #     flowpilot_process = Service("modeld camerad ui sensord", pid=flowpilot_pid,
+        #                                 monitor_only=True)
+        #     services.append(flowpilot_process)
+        # else:
+        #     cloudlog.warning("Unable to monitor flowpilot app (modeld camerad ui sensord)")
 
         try:
             # Start all services
-            for service in services:
+            for service in managed_processes.values():
                 service.start()
-
-            finished = [False] * len(services)
 
             pm = messaging.PubMaster(["procLog", "deviceState", "managerState"])
             params.put_bool("FlowinitReady", True)
 
             # Event loop
-            while True:
-                # Kill everything if we get a stop signal or if flowpilot shuts
-                # down
-                for i, service in enumerate(services):
-                    # Set the finished flag for each service
-                    finished[i] = not service.is_alive()
+            while True:            
 
-                running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if service.is_alive() else "\u001b[31m", service.name)
-                       for service in services)
+                running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if p.proc.is_alive() else "\u001b[31m", p.name)
+                       for p in managed_processes.values())
 
                 print(running)
                 cloudlog.debug(running)
 
                 # send managerState
                 manager_state_msg = messaging.new_message('managerState')
-                manager_state_msg.managerState.processes = [p.get_process_state_msg() for p in services]
+                manager_state_msg.managerState.processes = [p.get_process_state_msg() for p in managed_processes.values()]
                 pm.send('managerState', manager_state_msg)
 
                 # Generate a new procLogList Message
                 proc_log_msg = messaging.new_message("procLog")
-                proc_log_msg.procLog.procs = [
-                    services[i].get_proc_msg()
-                    for i, _ in enumerate(finished)
-                    if not finished[i]
-                ]
+                proc_log_msg.procLog.procs = [p.get_proc_msg() for p in managed_processes.values()]
                 proc_log_msg.procLog.cpuTimes = get_cpu_times()
                 proc_log_msg.procLog.mem = get_memory_logs()
 
@@ -276,11 +246,6 @@ def main():
                 pm.send("procLog", proc_log_msg)
                 pm.send("deviceState", device_state_msg)
 
-                if all(finished):
-                    cloudlog.info("everything is dead")
-                    logger.info("All services finished, exiting..")
-                    break
-                
                 # Try not to hog all the CPU cycles
                 time.sleep(Config.FREQUENCY)
                
@@ -289,6 +254,6 @@ def main():
         finally:
             logger.info("cleaning up..")
             params.put_bool("FlowinitReady", False)
-            killswitch(services)
-            killswitch(nomonitor_services)
+            for p in managed_processes.values():
+                p.stop()
             

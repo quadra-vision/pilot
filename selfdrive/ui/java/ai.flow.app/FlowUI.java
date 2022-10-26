@@ -17,6 +17,7 @@ import ai.flow.launcher.Launcher;
 import ai.flow.sensor.SensorInterface;
 import ai.flow.vision.ModelExecutorInterface;
 
+import org.nd4j.common.config.ND4JSystemProperties;
 import org.nd4j.linalg.factory.Nd4j;
 import org.opencv.core.Core;
 
@@ -90,6 +91,10 @@ public class FlowUI extends Game {
     public void create() {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
         Nd4j.zeros(1); // init nd4j (any better ways?)
+
+        System.setProperty(ND4JSystemProperties.LOG_INITIALIZATION, "false");
+        System.setProperty(ND4JSystemProperties.ND4J_IGNORE_AVX, "true");
+        System.setProperty(ND4JSystemProperties.VERSION_CHECK_PROPERTY, "false");
         copyResources();
 
         params.putInt("FlowpilotPID", pid);

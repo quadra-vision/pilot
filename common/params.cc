@@ -70,7 +70,7 @@ Params::Params(const std::string &path) {
     std::string db_path = getParamPath();
     util::create_directories(db_path, 0775);
     env = lmdb::env::create();
-    env.open(db_path.c_str(), 0);
+    env.open(db_path.c_str(), MDB_NOLOCK);
 }
 
 bool Params::checkKey(const std::string &key) {
