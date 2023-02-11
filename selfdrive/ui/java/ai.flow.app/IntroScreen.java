@@ -17,6 +17,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.videoio.Videoio;
 
+
 import java.nio.ByteBuffer;
 
 public class IntroScreen extends ScreenAdapter {
