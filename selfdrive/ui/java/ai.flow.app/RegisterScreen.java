@@ -67,7 +67,7 @@ public class RegisterScreen extends ScreenAdapter {
             }
         });
 
-        allEmailFreqCheckBox = new CheckBox(" All Emails", appContext.skin);
+            ..................... = new CheckBox(" All Emails", appContext.skin);
         allEmailFreqCheckBox.toggle();
         allEmailFreqCheckBox.addListener(new ChangeListener() {
             @Override
@@ -133,7 +133,7 @@ public class RegisterScreen extends ScreenAdapter {
         table = new Table();
         table.setFillParent(true);
 
-        label = new Label("FlowDrive Registration", appContext.skin);
+        label = new Label("Quadra Registration", appContext.skin);
 
         table.add(label).align(Align.center).height(75f);
         table.row();
