@@ -46,8 +46,8 @@ yes | sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt install -y python3.9 python3.9-dev python3.9-distutils 
 
 # get flowpilot
-cd ~/ && git clone https://github.com/flowdriveai/flowpilot.git
-cd flowpilot && git submodule update --init
+cd ~/ && git clone https://github.com/quadra-vision/pilot.git
+cd pilot && git submodule update --init
 
 pip install pipenv
 
