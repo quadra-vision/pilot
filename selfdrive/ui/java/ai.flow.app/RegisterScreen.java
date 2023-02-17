@@ -67,7 +67,7 @@ public class RegisterScreen extends ScreenAdapter {
             }
         });
 
-            ..................... = new CheckBox(" All Emails", appContext.skin);
+        allEmailFreqCheckBox = new CheckBox(" All Emails", appContext.skin);
         allEmailFreqCheckBox.toggle();
         allEmailFreqCheckBox.addListener(new ChangeListener() {
             @Override
