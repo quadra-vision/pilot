@@ -239,7 +239,7 @@ def main():
         daemon = Daemon()
 
         # Get the green flag from the FlowPilot app to start the services
-        #wait_for_start_signal(daemon)
+        wait_for_start_signal(daemon)
 
         # on android without root, we cannot monitor external processes
         flowpilot_pid = int.from_bytes(params.get("FlowpilotPID"), "little")
