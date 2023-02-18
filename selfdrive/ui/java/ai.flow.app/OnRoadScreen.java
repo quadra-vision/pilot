@@ -256,7 +256,7 @@ public class OnRoadScreen extends ScreenAdapter {
         else
             laneLess = false;
 
-        alertText1 = new Label("Flowpilot Unavailable", appContext.skin, "default-font-bold-med", "white");
+        alertText1 = new Label("Quadra Unavailable", appContext.skin, "default-font-bold-med", "white");
         alertText2 = new Label("Waiting for controlsd to start", appContext.skin, "default-font", "white");
 
         texImage = new Image(texture);
