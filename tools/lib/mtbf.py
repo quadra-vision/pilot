@@ -72,7 +72,7 @@ class LogReader:
                             'event': name,
                             'count': 1
                         })
-    
+
     # Immediate disables table
     immediate_table = PrettyTable(['', 'event', 'count'])
     for i, event in enumerate(events):
@@ -84,6 +84,7 @@ class LogReader:
     immediate_table.title = 'Immediate disables'
 
     print(immediate_table)
+    
 
   def soft_disables_table(self):
     events = []
@@ -133,10 +134,27 @@ if __name__ == "__main__":
   # capnproto <= 0.8.0 throws errors converting byte data to string
   # below line catches those errors and replaces the bytes with \x__
   codecs.register_error("strict", codecs.backslashreplace_errors)
+  
+  # iterate through all the subdirectories 
   log_path = sys.argv[1]
-  lr = LogReader(log_path, sort_by_time=True)
-  lr.immediate_disables_table()
-  lr.soft_disables_table()
-  #for msg in lr:
-    #print(msg)
+
+  # iterate through all the subdirectories of "arquivos"
+  for subdir in os.listdir(log_path):
+    subdir_path = os.path.join(log_path, subdir)
+
+    # check if the subdirectory is a directory (ignore files)
+    if os.path.isdir(subdir_path):
+
+      # iterate through all the files in the subdirectory
+      for file in os.listdir(subdir_path):
+        file_path = os.path.join(subdir_path, file)
+        # check if the file is a log file (ignore non-log files)
+        print(file_path)
+        # process the log file
+        lr = LogReader(file_path, sort_by_time=True)
+        
+        lr.immediate_disables_table()
+        lr.soft_disables_table()
+        
+
 
