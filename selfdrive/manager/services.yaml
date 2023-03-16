@@ -11,6 +11,9 @@ services:
 
   controlsd:
     command: controlsd
+    
+  loggerd: 
+  command: ./selfdrive/loggerd/loggerd
   
   logmessaged:
     command: logmessaged
