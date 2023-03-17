@@ -11,9 +11,6 @@ services:
 
   controlsd:
     command: controlsd
-    
-  loggerd: 
-  command: ./selfdrive/loggerd/loggerd
   
   logmessaged:
     command: logmessaged
@@ -22,6 +19,9 @@ services:
   keyvald:
     command: keyvald
     nowait: true
+
+  loggerd: 
+    command: ./selfdrive/loggerd/loggerd
   
   flowpilot:
     command: LD_PRELOAD=libprocname.so ./gradlew desktop:run
