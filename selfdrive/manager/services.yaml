@@ -22,6 +22,14 @@ services:
 
   loggerd: 
     command: ./selfdrive/loggerd/loggerd
+
+  thermald_:
+    command: thermald_
+    nowait: true
+
+  statsd:
+    command: statsd
+    nowait: true
   
   flowpilot:
     command: LD_PRELOAD=libprocname.so ./gradlew desktop:run
